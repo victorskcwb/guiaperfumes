@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Qual perfume usar hoje</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEAF0; --paper:#F7F6F9; --ink:#1E1B2E; --muted:#5F5A70; --line:#D5D1DD;
+  --amber:#B8741A; --sage:#4F7560; --plum:#6B2D4F; --chip:#E1DEE7;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#17151F; --paper:#211E2B; --ink:#EDEAF3; --muted:#A6A0B6; --line:#353042;
+    --amber:#E0A34A; --sage:#86B399; --plum:#D08AB0; --chip:#2B2737;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17151F; --paper:#211E2B; --ink:#EDEAF3; --muted:#A6A0B6; --line:#353042;
+  --amber:#E0A34A; --sage:#86B399; --plum:#D08AB0; --chip:#2B2737;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Manrope",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:28px 18px 60px}
+h1{font-family:"Bodoni Moda",Didot,"Times New Roman",serif;font-weight:700;font-size:clamp(2rem,8vw,3rem);line-height:1.05;margin:0 0 8px;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:0 0 24px;max-width:52ch}
+fieldset{border:0;padding:0;margin:0 0 16px}
+legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:inherit;font-size:.92rem;border:1px solid var(--line);background:var(--chip);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chips button:focus-visible,.toggle:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.count{margin:22px 0 12px;color:var(--muted);font-size:.92rem}
+.list{display:grid;gap:14px}
+.item{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 16px 16px 58px;position:relative}
+.vial{position:absolute;left:16px;top:18px;width:26px;height:64px;border:2px solid var(--ink);border-radius:6px 6px 9px 9px;overflow:hidden}
+.vial::before{content:"";position:absolute;left:6px;right:6px;top:-2px;height:7px;background:var(--ink);border-radius:0 0 2px 2px}
+.vial span{position:absolute;left:0;right:0;bottom:0;background:var(--c)}
+.item h2{font-family:"Bodoni Moda",Didot,serif;font-weight:500;font-size:1.3rem;line-height:1.2;margin:0}
+.brand{color:var(--muted);font-size:.88rem;margin:2px 0 10px}
+.fam{font-weight:700;font-size:.95rem;margin:0}
+.notes{margin:2px 0 10px;color:var(--muted);font-size:.93rem}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem;margin:0}
+.meta b{font-weight:700}
+.tip{margin:10px 0 0;font-size:.92rem;border-top:1px dashed var(--line);padding-top:10px}
+.item h2 button{all:unset;cursor:pointer;display:block}
+.item h2 button:focus-visible{outline:3px solid var(--amber);outline-offset:3px;border-radius:4px}
+.hint{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+.detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font-size:.93rem}
+.detail[hidden]{display:none}
+.pyr{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 10px}
+.pyr dt{font-weight:700}
+.pyr dd{margin:0;color:var(--muted)}
+.src{font-size:.85rem;color:var(--muted);margin:0 0 8px}
+.detail a{color:var(--amber);font-weight:700}
+.miss{font-size:.85rem;color:var(--plum);margin:8px 0 0}
+.note-near{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:14px 16px;color:var(--muted);font-size:.93rem}
+.empty{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted)}
+.pending{margin-top:40px}
+.pending h2{font-family:"Bodoni Moda",Didot,serif;font-weight:500;font-size:1.5rem;margin:0 0 6px}
+.pending p{color:var(--muted);margin:0 0 12px}
+.pending ul{margin:0;padding-left:20px;columns:2;column-gap:24px;font-size:.93rem}
+@media (max-width:420px){.pending ul{columns:1}}
+.legend-int{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:-4px 0 20px}
+.legend-int i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Qual perfume usar hoje</h1>
+  <p class="lede">Escolha o clima, o horário e onde você vai. A lista mostra os perfumes da sua coleção que combinam, com quantas borrifadas usar.</p>
+
+  <fieldset><legend>Clima</legend><div class="chips" data-group="clima"></div></fieldset>
+  <fieldset><legend>Período</legend><div class="chips" data-group="periodo"></div></fieldset>
+  <fieldset><legend>Ocasião</legend><div class="chips" data-group="ocasiao"></div></fieldset>
+
+  <div class="legend-int">
+    <span><i style="background:var(--sage)"></i>Fresco</span>
+    <span><i style="background:var(--amber)"></i>Amadeirado / versátil</span>
+    <span><i style="background:var(--plum)"></i>Doce / noturno</span>
+    <span>Nível do frasco = intensidade</span>
+  </div>
+
+  <p class="count" id="count" aria-live="polite"></p>
+  <div class="list" id="list"></div>
+
+  <section class="pending">
+    <h2>Ainda sem classificação</h2>
+    <p>Não encontrei informação confiável sobre estes. Se você me disser a inspiração ou como cheiram, eu adiciono ao guia.</p>
+    <ul id="pending"></ul>
+  </section>
+</div>
+
+<script>
+const OPTS = {
+  clima: ["Calor","Ameno","Frio"],
+  periodo: ["Dia","Noite"],
+  ocasiao: ["Academia","Trabalho","Casual","Jantar ou encontro","Festa ou balada","Evento formal"]
+};
+const COLOR = {fresco:"var(--sage)", versatil:"var(--amber)", noturno:"var(--plum)"};
+
+const P = [
+ {n:"Scandal Pour Homme Absolu",py:{t:"Ameixa mirabelle",h:"Castanha",b:"Sândalo"},u:"https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Scandal-Pour-Homme-Absolu-91053.html",ins:"",m:"Jean Paul Gaultier",f:"Amadeirado gourmand",no:"Ameixa mirabelle, castanha, sândalo",c:["Ameno","Frio"],p:["Noite"],o:["Jantar ou encontro","Festa ou balada","Evento formal"],i:4,t:"noturno",b:"2 a 3",d:"Sua melhor escolha para jantar e ocasião especial."},
+ {n:"Le Male Elixir",py:{t:"Lavanda, menta",h:"Baunilha, benjoim",b:"Mel, fava tonka, tabaco"},u:"",ins:"",m:"Jean Paul Gaultier",f:"Ambarado doce",no:"Lavanda, menta, mel, tabaco, baunilha, fava tonka",c:["Frio"],p:["Noite"],o:["Festa ou balada","Jantar ou encontro"],i:5,t:"noturno",b:"1 a 2",d:"Projeta muito. Evite ambiente fechado com comida e dias quentes."},
+ {n:"Ultra Male",py:{t:"Pera, lavanda, menta, bergamota, limão",h:"Canela, sálvia esclareia, alcaravia",b:"Baunilha negra, âmbar, patchouli, cedro"},u:"",ins:"",m:"Jean Paul Gaultier",f:"Oriental doce",no:"Pera, menta, lavanda, canela, baunilha",c:["Ameno","Frio"],p:["Noite"],o:["Festa ou balada"],i:4,t:"noturno",b:"2 a 3",d:"Ideal para balada. Doce demais para trabalho."},
+ {n:"Helix Man",py:{t:"Canela, noz-moscada, cardamomo, toranja",h:"Lavanda",b:"Alcaçuz, sândalo, âmbar, patchouli, vetiver"},u:"",ins:"Sauvage Elixir",m:"In The Box (inspirado em Sauvage Elixir)",f:"Especiado amadeirado",no:"Especiarias, lavanda, alcaçuz, madeiras",c:["Frio","Ameno"],p:["Noite"],o:["Jantar ou encontro","Festa ou balada","Evento formal"],i:5,t:"noturno",b:"1 a 2",d:"Muito forte. Poucas borrifadas bastam."},
+ {n:"Regnum Opus",py:null,u:"https://www.fragrantica.com/perfume/In-The-Box/Regnum-Opus-75486.html",ins:"",m:"In The Box (inspirado em Layton Exclusif)",f:"Oriental amadeirado",no:"Madeiras, notas animálicas, especiarias",c:["Frio"],p:["Noite"],o:["Evento formal","Jantar ou encontro"],i:5,t:"noturno",b:"1 a 2",d:"Denso e marcante. Guarde para noites frias."},
+ {n:"Club de Nuit Intense Man",py:{t:"Limão, abacaxi, bergamota, groselha preta, maçã",h:"Bétula, jasmim, rosa",b:"Almíscar, âmbar cinzento, patchouli, baunilha"},u:"",ins:"",m:"Armaf",f:"Cítrico defumado",no:"Limão, abacaxi, bétula, almíscar",c:["Calor","Ameno"],p:["Dia","Noite"],o:["Trabalho","Casual","Jantar ou encontro"],i:4,t:"versatil",b:"2 a 3",d:"O mais versátil da coleção. Forte na saída, vá com calma."},
+ {n:"Salvo",py:{t:"Bergamota, pimenta",h:"Pimenta de Sichuan, lavanda, pimenta rosa, vetiver, gerânio, elemi",b:"Ambroxan, cedro, láudano"},u:"",ins:"Sauvage",m:"Maison Alhambra (inspirado em Sauvage)",f:"Fresco especiado",no:"Bergamota, pimenta, ambroxan",c:["Calor","Ameno","Frio"],p:["Dia","Noite"],o:["Trabalho","Casual","Jantar ou encontro","Festa ou balada"],i:3,t:"versatil",b:"2 a 3",d:"Coringa: funciona em quase tudo."},
+ {n:"Jean Lowe Immortel",m:"Maison Alhambra (inspirado em L'Immensité)",f:"Fresco cítrico amadeirado",no:"Toranja, gengibre, ambroxan",c:["Calor","Ameno"],p:["Dia"],o:["Trabalho","Casual","Jantar ou encontro"],i:3,t:"fresco",b:"2 a 3",d:"Limpo e elegante para o dia."},
+ {n:"The Barbarian",py:{t:"Pimenta, cítricos",h:"Pimenta, menta",b:"Madeiras"},u:"https://www.fragrantica.com/perfume/In-The-Box/The-Barbarian-64776.html",ins:"",m:"In The Box (inspirado em Viking)",f:"Aromático amadeirado",no:"Pimenta, cítricos, menta, cravo, rosa",c:["Calor","Ameno","Frio"],p:["Dia","Noite"],o:["Trabalho","Casual","Jantar ou encontro","Evento formal"],i:3,t:"versatil",b:"2 a 3",d:"Versátil, clássico e seguro."},
+ {n:"Pride L'Homme",py:{t:"Neroli, pimenta-preta, cardamomo",h:"Íris, violeta, gerânio, mate",b:"Âmbar, patchouli, cedro, sândalo"},u:"",ins:"Prada L\'Homme",m:"In The Box (inspirado em Prada L'Homme)",f:"Atalcado limpo",no:"Íris, neroli, âmbar, cedro",c:["Calor","Ameno","Frio"],p:["Dia","Noite"],o:["Trabalho","Evento formal","Jantar ou encontro"],i:2,t:"versatil",b:"3 a 4",d:"Cheiro de roupa limpa e elegante. Ótimo para escritório."},
+ {n:"Versus Pour Homme",py:{t:"Limão, bergamota, neroli, rosa",h:"Jacinto, sálvia esclareia, cedro, gerânio",b:"Fava tonka, almíscar, âmbar"},u:"",ins:"Versace Pour Homme",m:"In The Box (inspirado em Versace Pour Homme)",f:"Cítrico aromático",no:"Limão, neroli, sálvia, cedro",c:["Calor","Ameno"],p:["Dia"],o:["Trabalho","Casual"],i:2,t:"fresco",b:"3 a 4",d:"Leve e fresco. Bom para calor e trabalho."},
+ {n:"Contratipo do Invictus",py:{t:"Toranja, notas marinhas",h:"Louro, jasmim",b:"Guaiaco, musgo de carvalho, patchouli, âmbar cinzento"},u:"",ins:"Invictus",m:"Mini",f:"Aquático adocicado",no:"Toranja, notas marinhas, louro, ambergris",c:["Calor","Ameno"],p:["Dia","Noite"],o:["Academia","Casual"],i:3,t:"fresco",b:"1 a 2",d:"Na academia, só 1 no peito."},
+ {n:"Nautica Voyage",py:{t:"Folhas verdes, maçã",h:"Lótus, mimosa",b:"Musgo, cedro, âmbar, almíscar"},u:"",ins:"",m:"Nautica",f:"Aquático fresco",no:"Maçã verde, lótus, notas aquáticas, musgo",c:["Calor","Ameno"],p:["Dia","Noite"],o:["Academia","Trabalho","Casual"],i:2,t:"fresco",b:"2 a 3 (academia: 1 a 2)",d:"Sua melhor opção para academia."},
+ {n:"Quasar Ice",m:"O Boticário",f:"Fresco aquático",no:"Frescor mentolado e aquático",c:["Calor"],p:["Dia","Noite"],o:["Academia","Casual"],i:1,t:"fresco",b:"2 a 3 (academia: 1 a 2)",d:"Refrescante, bom pós-treino e dias quentes."},
+ {n:"Natura Essencial Único",m:"Natura",f:"Amadeirado",no:"Madeiras",c:["Ameno","Frio"],p:["Noite","Dia"],o:["Jantar ou encontro","Trabalho","Evento formal"],i:3,t:"versatil",b:"2 a 3",d:"Discreto e elegante. Alternativa segura ao Scandal no jantar."},
+ {n:"Natura Homem Essence",m:"Natura",f:"Amadeirado intenso",no:"Madeiras",c:["Ameno","Frio"],p:["Noite"],o:["Jantar ou encontro","Evento formal"],i:4,t:"noturno",b:"2",d:"Mais pesado. Melhor em noites frescas."},
+ {n:"Zaad",m:"O Boticário",f:"Amadeirado aromático",no:"Madeiras e especiarias",c:["Ameno","Frio"],p:["Noite"],o:["Jantar ou encontro","Evento formal"],i:4,t:"noturno",b:"2",d:"Encorpado, pede noite e clima ameno."},
+ {n:"Cebolinha",m:"Jequiti",f:"Colônia infantil leve",no:"Frescor suave",c:["Calor"],p:["Dia"],o:["Casual"],i:1,t:"fresco",b:"à vontade",d:"Leve, some rápido."}
+];
+
+const PENDING = ["Uomini Black (O Boticário)","Quasar Brave (O Boticário)","Egeo Beat (O Boticário)","Zaad Mondo (O Boticário)","Homem Nós (Natura)","Homem Re.Conecta (Natura)","Supremacy Collector's Edition (Afnan)","Tropical Kiss (French Avenue)","Ghost Spectre (French Avenue)","Najma (Mawal)","Envoy (In The Box)","Jocker (Nuanciélo)","El Elion (Nuanciélo)","Infinity Intense Men (Fluy)","Provoking (Fluy)","Effervescent (Lab8)","Vinci (Thera)","Averos (Ame)","Moments (Baracca)"];
+
+const state = {clima:null, periodo:null, ocasiao:null};
+
+document.querySelectorAll(".chips").forEach(box=>{
+  const g = box.dataset.group;
+  ["Qualquer",...OPTS[g]].forEach(v=>{
+    const b = document.createElement("button");
+    b.type="button"; b.textContent=v;
+    b.setAttribute("aria-pressed", v==="Qualquer" ? "true":"false");
+    b.addEventListener("click",()=>{
+      state[g] = v==="Qualquer" ? null : v;
+      box.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b ? "true":"false"));
+      render();
+    });
+    box.appendChild(b);
+  });
+});
+
+function fragLink(x){
+  if(x.u) return x.u;
+  const q = x.ins ? x.ins : x.n + " " + x.m.replace(/\s*\(.*\)/,"");
+  return "https://www.google.com/search?q=" + encodeURIComponent("fragrantica " + q);
+}
+function misses(x){
+  const m=[];
+  if(state.clima && !x.c.includes(state.clima)) m.push("clima");
+  if(state.periodo && !x.p.includes(state.periodo)) m.push("período");
+  if(state.ocasiao && !x.o.includes(state.ocasiao)) m.push("ocasião");
+  return m;
+}
+function card(x, miss){
+  const el=document.createElement("article");
+  el.className="item";
+  const id="d-"+x.n.replace(/\W+/g,"-");
+  const pyr = x.py ? `
+    ${x.ins?`<p class="src">Pirâmide da inspiração (${x.ins})</p>`:""}
+    <dl class="pyr"><dt>Topo</dt><dd>${x.py.t}</dd><dt>Coração</dt><dd>${x.py.h}</dd><dt>Fundo</dt><dd>${x.py.b}</dd></dl>`
+    : `<p class="src">Pirâmide completa ainda não adicionada. Notas principais: ${x.no}.</p>`;
+  el.innerHTML=`
+    <div class="vial" aria-hidden="true"><span style="--c:${COLOR[x.t]};height:${x.i*19}%"></span></div>
+    <h2><button type="button" aria-expanded="false" aria-controls="${id}">${x.n}</button></h2>
+    <p class="brand">${x.m}</p>
+    <p class="fam">${x.f}</p>
+    <p class="notes">${x.no}</p>
+    <p class="meta"><span><b>Clima:</b> ${x.c.join(", ")}</span><span><b>Período:</b> ${x.p.join(", ")}</span><span><b>Borrifadas:</b> ${x.b}</span></p>
+    <p class="tip">${x.d}</p>
+    ${miss && miss.length?`<p class="miss">Não bate em: ${miss.join(", ")}</p>`:""}
+    <div class="detail" id="${id}" hidden>
+      ${pyr}
+      <a href="${fragLink(x)}" target="_blank" rel="noopener">Ver no Fragrantica</a>
+    </div>
+    <p class="hint">Toque no nome para ver as notas</p>`;
+  const btn=el.querySelector("h2 button"), det=el.querySelector(".detail"), hint=el.querySelector(".hint");
+  btn.addEventListener("click",()=>{
+    const open=btn.getAttribute("aria-expanded")==="true";
+    btn.setAttribute("aria-expanded", String(!open));
+    det.hidden=open; hint.hidden=!open;
+  });
+  return el;
+}
+function render(){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  const exact=P.filter(x=>misses(x).length===0);
+  if(exact.length){
+    document.getElementById("count").textContent = exact.length===1?"1 perfume combina":exact.length+" perfumes combinam";
+    exact.forEach(x=>list.appendChild(card(x)));
+    return;
+  }
+  const scored=P.map(x=>({x,m:misses(x)})).sort((a,b)=>a.m.length-b.m.length || b.x.o.length-a.x.o.length);
+  const best=scored[0].m.length;
+  const near=scored.filter(s=>s.m.length===best).slice(0,5);
+  document.getElementById("count").textContent="Nenhum combina com tudo. Estes chegam mais perto:";
+  near.forEach(s=>list.appendChild(card(s.x,s.m)));
+}
+document.getElementById("pending").innerHTML = PENDING.map(p=>`<li>${p}</li>`).join("");
+render();
+</script>
+</body>
+</html>
