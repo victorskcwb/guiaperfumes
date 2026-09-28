@@ -70,6 +70,12 @@ legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
 @media (max-width:420px){.pending ul{columns:1}}
 .legend-int{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin:-4px 0 20px}
 .legend-int i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.search{display:block;width:100%;font:inherit;font-size:1rem;padding:11px 16px;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);margin:0 0 20px}
+.search:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.rate{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:.85rem;color:var(--muted)}
+.rank{font-weight:700;color:var(--ink)}
+.stars{position:relative;display:inline-block;color:var(--line);letter-spacing:2px;font-size:1rem;line-height:1}
+.stars::before{content:"★★★★★";position:absolute;left:0;top:0;width:calc(var(--r) / 5 * 100%);overflow:hidden;white-space:nowrap;color:var(--amber)}
 </style>
 </head>
 <body>
@@ -77,9 +83,13 @@ legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
   <h1>Qual perfume usar hoje</h1>
   <p class="lede">Escolha o clima, o horário e onde você vai. A lista mostra os perfumes da sua coleção que combinam, com quantas borrifadas usar.</p>
 
+  <input class="search" id="q" type="search" placeholder="Buscar por nome, marca ou nota (ex.: baunilha)" aria-label="Buscar perfume" autocomplete="off">
+
   <fieldset><legend>Clima</legend><div class="chips" data-group="clima"></div></fieldset>
   <fieldset><legend>Período</legend><div class="chips" data-group="periodo"></div></fieldset>
   <fieldset><legend>Ocasião</legend><div class="chips" data-group="ocasiao"></div></fieldset>
+  <fieldset><legend>Estilo</legend><div class="chips" data-group="estilo"></div></fieldset>
+  <fieldset><legend>Intensidade</legend><div class="chips" data-group="intensidade"></div></fieldset>
 
   <div class="legend-int">
     <span><i style="background:var(--sage)"></i>Fresco</span>
@@ -102,9 +112,19 @@ legend{font-weight:700;font-size:.9rem;margin-bottom:8px}
 const OPTS = {
   clima: ["Calor","Ameno","Frio"],
   periodo: ["Dia","Noite"],
-  ocasiao: ["Academia","Trabalho","Casual","Jantar ou encontro","Festa ou balada","Evento formal"]
+  ocasiao: ["Academia","Trabalho","Casual","Jantar ou encontro","Festa ou balada","Evento formal"],
+  estilo: ["Fresco","Versátil","Noturno"],
+  intensidade: ["Suave","Moderada","Forte"]
 };
 const COLOR = {fresco:"var(--sage)", versatil:"var(--amber)", noturno:"var(--plum)"};
+const ESTILO = {Fresco:"fresco", "Versátil":"versatil", Noturno:"noturno"};
+const intensidade = x => x.i<=2 ? "Suave" : x.i===3 ? "Moderada" : "Forte";
+const RASTRO = ["","Discreto","Discreto","Moderado","Forte","Muito forte"];
+// Fixação: usa o número citado na dica quando existe; senão estima pela intensidade.
+function fixacao(x){
+  const m=x.d.match(/Fixação de cerca de (\d+) h/);
+  return m ? `cerca de ${m[1]} h` : `${["","3 a 4","3 a 4","5 a 6","6 a 8","8 h ou mais"][x.i].replace(/(\d)$/,"$1 h")} (estimada)`;
+}
 
 const P = [
  {n:"Scandal Pour Homme Absolu",py:{t:"Ameixa mirabelle",h:"Castanha",b:"Sândalo"},u:"https://www.fragrantica.com/perfume/Jean-Paul-Gaultier/Scandal-Pour-Homme-Absolu-91053.html",ins:"",m:"Jean Paul Gaultier",f:"Amadeirado gourmand",no:"Ameixa mirabelle, castanha, sândalo",c:["Ameno","Frio"],p:["Noite"],o:["Jantar ou encontro","Festa ou balada","Evento formal","Casual"],i:4,t:"noturno",b:"2 a 3",d:"Sua melhor escolha para jantar e ocasião especial."},
@@ -194,8 +214,31 @@ function score(x){
   if(state.ocasiao){ const i=x.o.indexOf(state.ocasiao); s*= i<0 ? .3 : 1-i*.08; }
   return s;
 }
+// Sem clima/período/ocasião escolhidos, o ranking é por versatilidade:
+// média do encaixe em todas as combinações de clima, período e ocasião.
+const VERS = {};
+P.forEach(x=>{
+  const a=affinity(x); let t=0, n=0;
+  OPTS.clima.forEach(c=>OPTS.periodo.forEach(p=>OPTS.ocasiao.forEach(o=>{
+    const i=x.o.indexOf(o); t+=a[c]*a[p]*(i<0?.3:1-i*.08); n++;
+  })));
+  VERS[x.n]=t/n;
+});
+const VMAX = Math.max(...Object.values(VERS));
+function stars(x, s){
+  const ctx = state.clima||state.periodo||state.ocasiao;
+  const r = ctx ? s*5 : VERS[x.n]/VMAX*5;
+  return Math.max(.5, Math.round(r*2)/2);
+}
+const ESTACOES = ["Inverno","Primavera","Verão","Outono"];
+function estacoes(x){
+  const v=V[x.n]; if(!v) return "";
+  const m=Math.max(v[0],v[1],v[2],v[3]);
+  return ESTACOES.filter((_,k)=>v[k]>=m*.6).join(", ");
+}
+const norm = s => s.normalize("NFD").replace(/\p{M}/gu,"").toLowerCase();
 
-const state = {clima:null, periodo:null, ocasiao:null};
+const state = {clima:null, periodo:null, ocasiao:null, estilo:null, intensidade:null, q:""};
 
 document.querySelectorAll(".chips").forEach(box=>{
   const g = box.dataset.group;
@@ -222,9 +265,17 @@ function misses(x){
   if(state.clima && !x.c.includes(state.clima)) m.push("clima");
   if(state.periodo && !x.p.includes(state.periodo)) m.push("período");
   if(state.ocasiao && !x.o.includes(state.ocasiao)) m.push("ocasião");
+  if(state.estilo && x.t!==ESTILO[state.estilo]) m.push("estilo");
+  if(state.intensidade && intensidade(x)!==state.intensidade) m.push("intensidade");
   return m;
 }
-function card(x, miss){
+function matchesQuery(x){
+  if(!state.q) return true;
+  const hay = norm([x.n,x.m,x.f,x.no,x.ins||"",x.py?Object.values(x.py).join(" "):""].join(" "));
+  return norm(state.q).split(/\s+/).filter(Boolean).every(w=>hay.includes(w));
+}
+function card(x, miss, rank, s){
+  const r=stars(x,s), est=estacoes(x);
   const el=document.createElement("article");
   el.className="item";
   const id="d-"+x.n.replace(/\W+/g,"-");
@@ -234,11 +285,14 @@ function card(x, miss){
     : `<p class="src">Pirâmide completa ainda não adicionada. Notas principais: ${x.no}.</p>`;
   el.innerHTML=`
     <div class="vial" aria-hidden="true"><span style="--c:${COLOR[x.t]};height:${x.i*19}%"></span></div>
+    <p class="rate"><span class="rank">#${rank}</span><span class="stars" style="--r:${r}" role="img" aria-label="${String(r).replace(".",",")} de 5 estrelas">★★★★★</span><span>${String(r).replace(".",",")}</span></p>
     <h2><button type="button" aria-expanded="false" aria-controls="${id}">${x.n}</button></h2>
     <p class="brand">${x.m}</p>
     <p class="fam">${x.f}</p>
     <p class="notes">${x.no}</p>
-    <p class="meta"><span><b>Clima:</b> ${x.c.join(", ")}</span><span><b>Período:</b> ${x.p.join(", ")}</span><span><b>Borrifadas:</b> ${x.b}</span></p>
+    <p class="meta"><span><b>Clima:</b> ${x.c.join(", ")}</span><span><b>Período:</b> ${x.p.join(", ")}</span>${est?`<span><b>Estações:</b> ${est}</span>`:""}</p>
+    <p class="meta"><span><b>Ocasiões:</b> ${x.o.join(", ")}</span></p>
+    <p class="meta"><span><b>Fixação:</b> ${fixacao(x)}</span><span><b>Rastro:</b> ${RASTRO[x.i]}</span><span><b>Borrifadas:</b> ${x.b}</span></p>
     <p class="tip">${x.d}</p>
     ${miss && miss.length?`<p class="miss">Não bate em: ${miss.join(", ")}</p>`:""}
     <div class="detail" id="${id}" hidden>
@@ -257,20 +311,30 @@ function card(x, miss){
 function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
-  const any=state.clima||state.periodo||state.ocasiao;
-  const exact=P.filter(x=>misses(x).length===0).map(x=>({x,s:score(x)})).sort((a,b)=>b.s-a.s);
-  if(exact.length){
-    const n = exact.length===1?"1 perfume combina":exact.length+" perfumes combinam";
-    document.getElementById("count").textContent = any && exact.length>1 ? n+", do mais indicado ao menos indicado" : n;
-    exact.forEach(e=>list.appendChild(card(e.x)));
+  const count=document.getElementById("count");
+  const ctx=state.clima||state.periodo||state.ocasiao;
+  const pool=P.filter(matchesQuery);
+  if(!pool.length){
+    count.textContent="";
+    list.innerHTML=`<p class="empty">Nenhum perfume encontrado para “${state.q.replace(/[<>&"]/g,"")}”.</p>`;
     return;
   }
-  const scored=P.map(x=>({x,m:misses(x),s:score(x)})).sort((a,b)=>a.m.length-b.m.length || b.s-a.s);
+  // Sem contexto, ordena pela versatilidade; com contexto, pelo encaixe.
+  const rankBy = e => ctx ? e.s : VERS[e.x.n];
+  const exact=pool.filter(x=>misses(x).length===0).map(x=>({x,s:score(x)})).sort((a,b)=>rankBy(b)-rankBy(a));
+  if(exact.length){
+    const n = exact.length===1?"1 perfume combina":exact.length+" perfumes combinam";
+    count.textContent = exact.length===1 ? n : n+(ctx?", do mais indicado ao menos indicado":", do mais versátil ao menos versátil");
+    exact.forEach((e,k)=>list.appendChild(card(e.x,null,k+1,e.s)));
+    return;
+  }
+  const scored=pool.map(x=>({x,m:misses(x),s:score(x)})).sort((a,b)=>a.m.length-b.m.length || rankBy(b)-rankBy(a));
   const best=scored[0].m.length;
   const near=scored.filter(s=>s.m.length===best).slice(0,5);
-  document.getElementById("count").textContent="Nenhum combina com tudo. Estes chegam mais perto:";
-  near.forEach(s=>list.appendChild(card(s.x,s.m)));
+  count.textContent="Nenhum combina com tudo. Estes chegam mais perto:";
+  near.forEach((e,k)=>list.appendChild(card(e.x,e.m,k+1,e.s)));
 }
+document.getElementById("q").addEventListener("input",e=>{ state.q=e.target.value.trim(); render(); });
 document.getElementById("pending").innerHTML = PENDING.map(p=>`<li>${p}</li>`).join("");
 document.querySelector(".pending").hidden = !PENDING.length;
 render();
